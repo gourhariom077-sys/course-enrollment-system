@@ -2,13 +2,16 @@ spring:
   application:
     name: enrollment
 
+  jackson:
+    default-property-inclusion: non_null
+
   datasource:
     url: jdbc:postgresql://localhost:5432/course_enrollment
     username: postgres
     password: ${DB_PASSWORD}
 
   jpa:
-    open-in-view:  false
+    open-in-view: false
     hibernate:
       ddl-auto: update
     show-sql: true
