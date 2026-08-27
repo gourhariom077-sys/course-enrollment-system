@@ -102,9 +102,13 @@ To verify the waitlist end to end: create a course with `capacity: 2`, enroll th
 
 ## Status
 
-Foundations (schema, exception handling, response envelope) and the Course module are done. Student and Enrollment are next; Enrollment carries the waitlist logic and is the core of the system.
+Foundations (schema, exception handling, response envelope), the Course module and the Student module are done. Enrollment is next; it carries the waitlist logic and is the core of the system.
 
-Deferred to a later phase with reasoning: authentication and RBAC, instructor as a separate entity, transcript and fill-rate reports, Flyway migrations, Swagger, CI/CD. See [TDD §11](docs/Course-Enrollment-System-Technical-Design.pdf).
+| Module | Code | Tested | Report |
+|---|---|---|---|
+| M1 Course | Done | 31/31 PASS | [TER-CES-M1-001 v3.0](docs/) |
+| M2 Student | Done | 28/28 PASS | [TER-CES-M2-001 v1.0](docs/) |
+| M3 Enrollment, Grading, Roster | Not started | — | — |
 
 ## Owners
 
