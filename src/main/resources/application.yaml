@@ -2,6 +2,10 @@ spring:
   application:
     name: enrollment
 
+
+    liquibase:
+      change-log: classpath:db/changelog/db.changelog-master.yaml
+
   jackson:
     default-property-inclusion: non_null
 
@@ -13,7 +17,7 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:

@@ -1,0 +1,292 @@
+databaseChangeLog:
+- changeSet:
+    id: 1788531457106-1
+    author: gourh
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: pk_courses
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: title
+            type: VARCHAR(150)
+        - column:
+            name: description
+            type: VARCHAR(1000)
+        - column:
+            constraints:
+              nullable: false
+            name: instructor_name
+            type: VARCHAR(100)
+        - column:
+            constraints:
+              nullable: false
+            name: capacity
+            type: INTEGER
+        - column:
+            constraints:
+              nullable: false
+            defaultValue: OPEN
+            name: status
+            type: VARCHAR(20)
+        - column:
+            constraints:
+              nullable: false
+            name: created_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: updated_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+            name: code
+            type: VARCHAR(20)
+        - column:
+            constraints:
+              nullable: false
+            name: credits
+            type: INTEGER
+        tableName: courses
+- changeSet:
+    id: 1788531457106-2
+    author: gourh (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: pk_students
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: name
+            type: VARCHAR(100)
+        - column:
+            constraints:
+              nullable: false
+            name: email
+            type: VARCHAR(150)
+        - column:
+            name: phone
+            type: VARCHAR(15)
+        - column:
+            constraints:
+              nullable: false
+            name: created_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: updated_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+            name: roll_no
+            type: VARCHAR(30)
+        - column:
+            constraints:
+              nullable: false
+            name: semester
+            type: INTEGER
+        tableName: students
+- changeSet:
+    id: 1788531457106-3
+    author: gourh (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: pk_enrollments
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: course_id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: student_id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: status
+            type: VARCHAR(20)
+        - column:
+            constraints:
+              nullable: false
+            name: enrolled_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: updated_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        tableName: enrollments
+- changeSet:
+    id: 1788531457106-4
+    author: gourh (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: pk_grades
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: enrollment_id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: marks
+            type: numeric(5, 2)
+        - column:
+            name: grade_letter
+            type: VARCHAR(2)
+        - column:
+            name: remarks
+            type: VARCHAR(500)
+        - column:
+            constraints:
+              nullable: false
+            name: created_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: updated_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+            name: graded_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        tableName: grades
+- changeSet:
+    id: 1788531457106-5
+    author: gourh (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            computed: true
+            name: lower((email)::text)
+        indexName: uk_students_email
+        tableName: students
+        unique: true
+- changeSet:
+    id: 1788531457106-6
+    author: gourh (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: email
+        constraintName: uk_student_email
+        tableName: students
+- changeSet:
+    id: 1788531457106-7
+    author: gourh (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: course_id
+        - column:
+            name: status
+        - column:
+            name: enrolled_at
+        indexName: idx_enr_course_status_time
+        tableName: enrollments
+- changeSet:
+    id: 1788531457106-8
+    author: gourh (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: student_id
+        indexName: idx_enr_student
+        tableName: enrollments
+- changeSet:
+    id: 1788531457106-9
+    author: gourh (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: course_id, student_id
+        constraintName: uk_enroll_course_student
+        tableName: enrollments
+- changeSet:
+    id: 1788531457106-10
+    author: gourh (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: enrollment_id
+        constraintName: uk_grades_enroll
+        tableName: grades
+- changeSet:
+    id: 1788531457106-11
+    author: gourh (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: course_id
+        baseTableName: enrollments
+        constraintName: fk_enroll_course
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: CASCADE
+        referencedColumnNames: id
+        referencedTableName: courses
+        validate: true
+- changeSet:
+    id: 1788531457106-12
+    author: gourh (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: student_id
+        baseTableName: enrollments
+        constraintName: fk_enroll_student
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: CASCADE
+        referencedColumnNames: id
+        referencedTableName: students
+        validate: true
+- changeSet:
+    id: 1788531457106-13
+    author: gourh
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: enrollment_id
+        baseTableName: grades
+        constraintName: fk_grades_enroll
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: CASCADE
+        referencedColumnNames: id
+        referencedTableName: enrollments
+        validate: true
+
