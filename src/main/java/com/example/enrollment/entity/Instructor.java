@@ -1,34 +1,32 @@
 package com.example.enrollment.entity;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "students")
-public class Student {
+@Table(name = "instructors")
+public class Instructor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "roll_no", nullable = false, unique = true, length = 30)
-    private String rollNo;
-
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 255)
     private String name;
 
-    @Column(nullable = false, unique = true, length = 150)
+    @Column(nullable = false, unique = true, length = 255)
     private String email;
 
-    @Column(length = 15)
+    @Column(length = 20)
     private String phone;
 
-    @Column(nullable = false)
-    private Integer semester;
+    @Column(length = 100)
+    private String specialization;
+
 
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
-
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -36,20 +34,13 @@ public class Student {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getRollNo() {
-        return rollNo;
-    }
-
-    public void setRollNo(String rollNo) {
-        this.rollNo = rollNo;
     }
 
     public String getName() {
@@ -60,14 +51,6 @@ public class Student {
         this.name = name;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public String getPhone() {
         return phone;
     }
@@ -76,12 +59,20 @@ public class Student {
         this.phone = phone;
     }
 
-    public Integer getSemester() {
-        return semester;
+    public String getEmail() {
+        return email;
     }
 
-    public void setSemester(Integer semester) {
-        this.semester = semester;
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getSpecialization() {
+        return specialization;
+    }
+
+    public void setSpecialization(String specialization) {
+        this.specialization = specialization;
     }
 
     public Course getCourse() {
