@@ -1,11 +1,16 @@
 package com.example.enrollment.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "grades")
+@Getter
+@Setter
 public class Grade {
 
     @Id
@@ -15,6 +20,10 @@ public class Grade {
     @ManyToOne
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;
+
+    @ManyToOne
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
 
     @Column(nullable = false, precision = 5, scale = 2)
     private BigDecimal marks;
@@ -33,68 +42,4 @@ public class Grade {
 
     @Column(name = "graded_at", nullable = false)
     private LocalDateTime gradedAt;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Student getStudent() {
-        return student;
-    }
-
-    public void setStudent(Student student) {
-        this.student = student;
-    }
-
-    public BigDecimal getMarks() {
-        return marks;
-    }
-
-    public void setMarks(BigDecimal marks) {
-        this.marks = marks;
-    }
-
-    public String getGradeLetter() {
-        return gradeLetter;
-    }
-
-    public void setGradeLetter(String gradeLetter) {
-        this.gradeLetter = gradeLetter;
-    }
-
-    public String getRemarks() {
-        return remarks;
-    }
-
-    public void setRemarks(String remarks) {
-        this.remarks = remarks;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public LocalDateTime getGradedAt() {
-        return gradedAt;
-    }
-
-    public void setGradedAt(LocalDateTime gradedAt) {
-        this.gradedAt = gradedAt;
-    }
 }

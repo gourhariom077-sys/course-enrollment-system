@@ -263,4 +263,17 @@ databaseChangeLog:
                     columns:
                         - column:
                               name: course_id
+    - changeSet:
+        id: 001-6-add-enrollment-status
+        author: gourh
+        changes:
+          - addColumn:
+              tableName: students
+              columns:
+                - column:
+                    name: enrollment_status
+                    type: VARCHAR(20)
+                    defaultValue: ENROLLED
+                    constraints:
+                      nullable: false
 
