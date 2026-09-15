@@ -2,9 +2,8 @@ spring:
   application:
     name: enrollment
 
-
-    liquibase:
-      change-log: classpath:db/changelog/db.changelog-master.yaml
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
 
   jackson:
     default-property-inclusion: non_null
