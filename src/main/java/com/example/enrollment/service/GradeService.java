@@ -77,11 +77,6 @@ public class GradeService {
         return toResponse(gradeRepo.save(grade));
     }
 
-    public void delete(Long id) {
-        Grade grade = findOrThrow(id);
-        gradeRepo.delete(grade);
-    }
-
     private Grade findOrThrow(Long id) {
         return gradeRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Grade not found with id: " + id));

@@ -60,11 +60,6 @@ public class CourseService {
         return toResponse(courseRepo.save(course));
     }
 
-    public void delete(Long id) {
-        Course course = findOrThrow(id);
-        courseRepo.delete(course);
-    }
-
     private Course findOrThrow(Long id) {
         return courseRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));

@@ -64,11 +64,6 @@ public class InstructorService {
         return toResponse(instructorRepo.save(instructor));
     }
 
-    public void delete(Long id) {
-        Instructor instructor = findOrThrow(id);
-        instructorRepo.delete(instructor);
-    }
-
     private Instructor findOrThrow(Long id) {
         return instructorRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Instructor not found with id: " + id));
