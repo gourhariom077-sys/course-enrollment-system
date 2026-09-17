@@ -5,6 +5,7 @@ import com.example.enrollment.dto.response.GradeResponse;
 import com.example.enrollment.entity.Course;
 import com.example.enrollment.entity.Grade;
 import com.example.enrollment.entity.Student;
+import com.example.enrollment.exception.ResourceNotFoundException;
 import com.example.enrollment.repository.CourseRepo;
 import com.example.enrollment.repository.GradeRepo;
 import com.example.enrollment.repository.StudentRepo;
@@ -29,10 +30,10 @@ public class GradeService {
 
     public GradeResponse create(GradeRequest request) {
         Student student = studentRepo.findById(request.getStudentId())
-                .orElseThrow(() -> new RuntimeException("Student not found with id: " + request.getStudentId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + request.getStudentId()));
 
         Course course = courseRepo.findById(request.getCourseId())
-                .orElseThrow(() -> new RuntimeException("Course not found with id: " + request.getCourseId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found with id: " + request.getCourseId()));
 
         Grade grade = new Grade();
         grade.setStudent(student);
@@ -46,21 +47,22 @@ public class GradeService {
         return toResponse(gradeRepo.save(grade));
     }
 
-    public GradeResponse getById(Long id) {
-        return toResponse(findOrThrow(id));
-    }
+    public List<GradeResponse> search(Long id, Long studentId, Long courseId) {
+        List<Grade> grades;
 
-    public List<GradeResponse> getAll() {
-        List<Grade> grades = gradeRepo.findAll();
-        List<GradeResponse> result = new ArrayList<>();
-        for (Grade grade : grades) {
-            result.add(toResponse(grade));
+        if (id != null) {
+            grades = new ArrayList<>();
+            gradeRepo.findById(id).ifPresent(grades::add);
+        } else if (studentId != null && courseId != null) {
+            grades = gradeRepo.findByStudentIdAndCourseId(studentId, courseId);
+        } else if (studentId != null) {
+            grades = gradeRepo.findByStudentId(studentId);
+        } else if (courseId != null) {
+            grades = gradeRepo.findByCourseId(courseId);
+        } else {
+            grades = gradeRepo.findAll();
         }
-        return result;
-    }
 
-    public List<GradeResponse> getByStudentId(Long studentId) {
-        List<Grade> grades = gradeRepo.findByStudentId(studentId);
         List<GradeResponse> result = new ArrayList<>();
         for (Grade grade : grades) {
             result.add(toResponse(grade));
@@ -79,20 +81,20 @@ public class GradeService {
 
     private Grade findOrThrow(Long id) {
         return gradeRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Grade not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Grade not found with id: " + id));
     }
 
     private GradeResponse toResponse(Grade grade) {
-        GradeResponse response = new GradeResponse();
-        response.setId(grade.getId());
-        response.setStudentId(grade.getStudent().getId());
-        response.setCourseId(grade.getCourse().getId());
-        response.setMarks(grade.getMarks());
-        response.setGradeLetter(grade.getGradeLetter());
-        response.setRemarks(grade.getRemarks());
-        response.setGradedAt(grade.getGradedAt());
-        response.setCreatedAt(grade.getCreatedAt());
-        response.setUpdatedAt(grade.getUpdatedAt());
-        return response;
+        return GradeResponse.builder()
+                .id(grade.getId())
+                .studentId(grade.getStudent().getId())
+                .courseId(grade.getCourse().getId())
+                .marks(grade.getMarks())
+                .gradeLetter(grade.getGradeLetter())
+                .remarks(grade.getRemarks())
+                .gradedAt(grade.getGradedAt())
+                .createdAt(grade.getCreatedAt())
+                .updatedAt(grade.getUpdatedAt())
+                .build();
     }
 }

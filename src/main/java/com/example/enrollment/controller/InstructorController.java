@@ -29,15 +29,13 @@ public class InstructorController {
                 .body(ApiResponse.success("Instructor created successfully", response));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<InstructorResponse>> getById(@PathVariable Long id) {
-        InstructorResponse response = instructorService.getById(id);
-        return ResponseEntity.ok(ApiResponse.success("Instructor fetched successfully", response));
-    }
-
     @GetMapping
-    public ResponseEntity<ApiResponse<List<InstructorResponse>>> getAll() {
-        List<InstructorResponse> response = instructorService.getAll();
+    public ResponseEntity<ApiResponse<List<InstructorResponse>>> getAll(
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) String specialization,
+            @RequestParam(required = false) Long courseId) {
+
+        List<InstructorResponse> response = instructorService.search(id, specialization, courseId);
         return ResponseEntity.ok(ApiResponse.success("Instructors fetched successfully", response));
     }
 

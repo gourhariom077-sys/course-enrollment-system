@@ -4,6 +4,8 @@ import com.example.enrollment.dto.request.InstructorRequest;
 import com.example.enrollment.dto.response.InstructorResponse;
 import com.example.enrollment.entity.Course;
 import com.example.enrollment.entity.Instructor;
+import com.example.enrollment.exception.ConflictException;
+import com.example.enrollment.exception.ResourceNotFoundException;
 import com.example.enrollment.repository.CourseRepo;
 import com.example.enrollment.repository.InstructorRepo;
 import org.springframework.stereotype.Service;
@@ -25,11 +27,11 @@ public class InstructorService {
 
     public InstructorResponse create(InstructorRequest request) {
         if (instructorRepo.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists: " + request.getEmail());
+            throw new ConflictException("Email already exists: " + request.getEmail());
         }
 
         Course course = courseRepo.findById(request.getCourseId())
-                .orElseThrow(() -> new RuntimeException("Course not found with id: " + request.getCourseId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found with id: " + request.getCourseId()));
 
         Instructor instructor = new Instructor();
         instructor.setName(request.getName());
@@ -42,12 +44,22 @@ public class InstructorService {
         return toResponse(instructorRepo.save(instructor));
     }
 
-    public InstructorResponse getById(Long id) {
-        return toResponse(findOrThrow(id));
-    }
+    public List<InstructorResponse> search(Long id, String specialization, Long courseId) {
+        List<Instructor> instructors;
 
-    public List<InstructorResponse> getAll() {
-        List<Instructor> instructors = instructorRepo.findAll();
+        if (id != null) {
+            instructors = new ArrayList<>();
+            instructorRepo.findById(id).ifPresent(instructors::add);
+        } else if (specialization != null && courseId != null) {
+            instructors = instructorRepo.findBySpecializationIgnoreCaseAndCourseId(specialization, courseId);
+        } else if (specialization != null) {
+            instructors = instructorRepo.findBySpecializationIgnoreCase(specialization);
+        } else if (courseId != null) {
+            instructors = instructorRepo.findByCourseId(courseId);
+        } else {
+            instructors = instructorRepo.findAll();
+        }
+
         List<InstructorResponse> result = new ArrayList<>();
         for (Instructor instructor : instructors) {
             result.add(toResponse(instructor));
@@ -66,19 +78,19 @@ public class InstructorService {
 
     private Instructor findOrThrow(Long id) {
         return instructorRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Instructor not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Instructor not found with id: " + id));
     }
 
     private InstructorResponse toResponse(Instructor instructor) {
-        InstructorResponse response = new InstructorResponse();
-        response.setId(instructor.getId());
-        response.setName(instructor.getName());
-        response.setEmail(instructor.getEmail());
-        response.setPhone(instructor.getPhone());
-        response.setSpecialization(instructor.getSpecialization());
-        response.setCourseId(instructor.getCourse().getId());
-        response.setCreatedAt(instructor.getCreatedAt());
-        response.setUpdatedAt(instructor.getUpdatedAt());
-        return response;
+        return InstructorResponse.builder()
+                .id(instructor.getId())
+                .name(instructor.getName())
+                .email(instructor.getEmail())
+                .phone(instructor.getPhone())
+                .specialization(instructor.getSpecialization())
+                .courseId(instructor.getCourse().getId())
+                .createdAt(instructor.getCreatedAt())
+                .updatedAt(instructor.getUpdatedAt())
+                .build();
     }
 }

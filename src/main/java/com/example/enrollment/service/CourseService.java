@@ -4,6 +4,8 @@ import com.example.enrollment.dto.request.CourseRequest;
 import com.example.enrollment.dto.response.CourseResponse;
 import com.example.enrollment.entity.Course;
 import com.example.enrollment.enums.CourseStatus;
+import com.example.enrollment.exception.ConflictException;
+import com.example.enrollment.exception.ResourceNotFoundException;
 import com.example.enrollment.repository.CourseRepo;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +24,7 @@ public class CourseService {
 
     public CourseResponse create(CourseRequest request) {
         if (courseRepo.existsByCode(request.getCode())) {
-            throw new RuntimeException("Course code already exists: " + request.getCode());
+            throw new ConflictException("Course code already exists: " + request.getCode());
         }
 
         Course course = new Course();
@@ -37,12 +39,21 @@ public class CourseService {
         return toResponse(courseRepo.save(course));
     }
 
-    public CourseResponse getById(Long id) {
-        return toResponse(findOrThrow(id));
-    }
+    public List<CourseResponse> search(Long id, String code, CourseStatus status) {
+        List<Course> courses;
 
-    public List<CourseResponse> getAll() {
-        List<Course> courses = courseRepo.findAll();
+        if (id != null) {
+            courses = new ArrayList<>();
+            courseRepo.findById(id).ifPresent(courses::add);
+        } else if (code != null) {
+            courses = new ArrayList<>();
+            courseRepo.findByCode(code).ifPresent(courses::add);
+        } else if (status != null) {
+            courses = courseRepo.findByCourseStatus(status);
+        } else {
+            courses = courseRepo.findAll();
+        }
+
         List<CourseResponse> result = new ArrayList<>();
         for (Course course : courses) {
             result.add(toResponse(course));
@@ -62,20 +73,20 @@ public class CourseService {
 
     private Course findOrThrow(Long id) {
         return courseRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found with id: " + id));
     }
 
     private CourseResponse toResponse(Course course) {
-        CourseResponse response = new CourseResponse();
-        response.setId(course.getId());
-        response.setCode(course.getCode());
-        response.setTitle(course.getTitle());
-        response.setDescription(course.getDescription());
-        response.setCapacity(course.getCapacity());
-        response.setCredits(course.getCredits());
-        response.setStatus(course.getCourseStatus());
-        response.setCreatedAt(course.getCreatedAt());
-        response.setUpdatedAt(course.getUpdatedAt());
-        return response;
+        return CourseResponse.builder()
+                .id(course.getId())
+                .code(course.getCode())
+                .title(course.getTitle())
+                .description(course.getDescription())
+                .capacity(course.getCapacity())
+                .credits(course.getCredits())
+                .status(course.getCourseStatus())
+                .createdAt(course.getCreatedAt())
+                .updatedAt(course.getUpdatedAt())
+                .build();
     }
 }

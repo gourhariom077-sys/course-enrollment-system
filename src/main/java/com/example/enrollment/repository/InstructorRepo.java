@@ -9,5 +9,9 @@ public interface InstructorRepo extends JpaRepository<Instructor, Long> {
 
         boolean existsByEmail(String email);
         List<Instructor> findByCourseId(Long courseId);
-    }
+
+    List<Instructor> findBySpecializationIgnoreCaseAndCourseId(String specialization, Long courseId);
+
+    List<Instructor> findBySpecializationIgnoreCase(String specialization);
+}
 

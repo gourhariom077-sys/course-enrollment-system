@@ -5,6 +5,8 @@ import com.example.enrollment.dto.response.StudentResponse;
 import com.example.enrollment.entity.Course;
 import com.example.enrollment.entity.Student;
 import com.example.enrollment.enums.EnrollmentStatus;
+import com.example.enrollment.exception.ConflictException;
+import com.example.enrollment.exception.ResourceNotFoundException;
 import com.example.enrollment.repository.CourseRepo;
 import com.example.enrollment.repository.StudentRepo;
 import org.springframework.stereotype.Service;
@@ -26,14 +28,14 @@ public class StudentService {
 
     public StudentResponse create(StudentRequest request) {
         if (studentRepo.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists: " + request.getEmail());
+            throw new ConflictException("Email already exists: " + request.getEmail());
         }
         if (studentRepo.existsByRollNo(request.getRollNo())) {
-            throw new RuntimeException("Roll number already exists: " + request.getRollNo());
+            throw new ConflictException("Roll number already exists: " + request.getRollNo());
         }
 
         Course course = courseRepo.findById(request.getCourseId())
-                .orElseThrow(() -> new RuntimeException("Course not found with id: " + request.getCourseId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found with id: " + request.getCourseId()));
 
         Student student = new Student();
         student.setRollNo(request.getRollNo());
@@ -42,9 +44,14 @@ public class StudentService {
         student.setPhone(request.getPhone());
         student.setCourse(course);
         student.setSemester(request.getSemester());
-        student.setEnrollmentStatus(EnrollmentStatus.ENROLLED);
-        student.setCreatedAt(LocalDateTime.now());
 
+        long enrolledCount = studentRepo.countByCourseIdAndEnrollmentStatus(course.getId(), EnrollmentStatus.ENROLLED);
+        if (enrolledCount < course.getCapacity()) {
+            student.setEnrollmentStatus(EnrollmentStatus.ENROLLED);
+        } else {
+            student.setEnrollmentStatus(EnrollmentStatus.WAITLISTED);
+        }
+        student.setCreatedAt(LocalDateTime.now());
         return toResponse(studentRepo.save(student));
     }
 
@@ -81,38 +88,56 @@ public class StudentService {
         return toResponse(studentRepo.save(student));
     }
 
-    public void delete(Long id) {
-        Student student = findOrThrow(id);
-        studentRepo.delete(student);
-    }
-
     public StudentResponse changeEnrollmentStatus(Long id, EnrollmentStatus newStatus) {
         Student student = findOrThrow(id);
         if (!student.getEnrollmentStatus().canMoveTo(newStatus)) {
-            throw new RuntimeException("Cannot change status from " + student.getEnrollmentStatus() + " to " + newStatus);
+            throw new ConflictException("Cannot change status from " + student.getEnrollmentStatus() + " to " + newStatus);
         }
+
         student.setEnrollmentStatus(newStatus);
         student.setUpdatedAt(LocalDateTime.now());
-        return toResponse(studentRepo.save(student));
+        studentRepo.save(student);
+
+        if (newStatus == EnrollmentStatus.DROPPED || newStatus == EnrollmentStatus.COMPLETED) {
+            List<Student> waitlist = studentRepo.findByCourseIdAndEnrollmentStatusOrderByCreatedAtAsc(
+                    student.getCourse().getId(), EnrollmentStatus.WAITLISTED);
+            if (!waitlist.isEmpty()) {
+                Student nextStudent = waitlist.get(0);
+                nextStudent.setEnrollmentStatus(EnrollmentStatus.ENROLLED);
+                nextStudent.setUpdatedAt(LocalDateTime.now());
+                studentRepo.save(nextStudent);
+            }
+        }
+
+        return toResponse(student);
     }
 
     private Student findOrThrow(Long id) {
         return studentRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Student not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + id));
     }
 
     private StudentResponse toResponse(Student student) {
-        StudentResponse response = new StudentResponse();
-        response.setId(student.getId());
-        response.setRollNo(student.getRollNo());
-        response.setName(student.getName());
-        response.setEmail(student.getEmail());
-        response.setPhone(student.getPhone());
-        response.setCourseId(student.getCourse().getId());
-        response.setSemester(student.getSemester());
-        response.setEnrollmentStatus(student.getEnrollmentStatus());
-        response.setCreatedAt(student.getCreatedAt());
-        response.setUpdatedAt(student.getUpdatedAt());
-        return response;
+        return StudentResponse.builder()
+                .id(student.getId())
+                .rollNo(student.getRollNo())
+                .name(student.getName())
+                .email(student.getEmail())
+                .phone(student.getPhone())
+                .courseId(student.getCourse().getId())
+                .semester(student.getSemester())
+                .enrollmentStatus(student.getEnrollmentStatus())
+                .createdAt(student.getCreatedAt())
+                .updatedAt(student.getUpdatedAt())
+                .build();
     }
 }
+
+
+
+
+
+
+
+
+

@@ -29,21 +29,13 @@ public class GradeController {
                 .body(ApiResponse.success("Grade recorded successfully", response));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<GradeResponse>> getById(@PathVariable Long id) {
-        GradeResponse response = gradeService.getById(id);
-        return ResponseEntity.ok(ApiResponse.success("Grade fetched successfully", response));
-    }
-
     @GetMapping
-    public ResponseEntity<ApiResponse<List<GradeResponse>>> getAll() {
-        List<GradeResponse> response = gradeService.getAll();
-        return ResponseEntity.ok(ApiResponse.success("Grades fetched successfully", response));
-    }
+    public ResponseEntity<ApiResponse<List<GradeResponse>>> getAll(
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) Long studentId,
+            @RequestParam(required = false) Long courseId) {
 
-    @GetMapping("/student/{studentId}")
-    public ResponseEntity<ApiResponse<List<GradeResponse>>> getByStudentId(@PathVariable Long studentId) {
-        List<GradeResponse> response = gradeService.getByStudentId(studentId);
+        List<GradeResponse> response = gradeService.search(id, studentId, courseId);
         return ResponseEntity.ok(ApiResponse.success("Grades fetched successfully", response));
     }
 

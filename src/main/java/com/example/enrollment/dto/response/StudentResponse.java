@@ -1,13 +1,13 @@
 package com.example.enrollment.dto.response;
 
 import com.example.enrollment.enums.EnrollmentStatus;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Getter
-@Setter
+@Builder
 public class StudentResponse {
     private Long id;
     private String rollNo;
