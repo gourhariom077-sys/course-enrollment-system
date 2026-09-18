@@ -8,10 +8,10 @@ import com.example.enrollment.exception.ConflictException;
 import com.example.enrollment.exception.ResourceNotFoundException;
 import com.example.enrollment.repository.CourseRepo;
 import com.example.enrollment.repository.InstructorRepo;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -45,26 +45,18 @@ public class InstructorService {
     }
 
     public List<InstructorResponse> search(Long id, String specialization, Long courseId) {
-        List<Instructor> instructors;
+        Specification<Instructor> spec = buildSpec(id, specialization, courseId);
+        return instructorRepo.findAll(spec).stream()
+                .map(this::toResponse)
+                .toList();
+    }
 
-        if (id != null) {
-            instructors = new ArrayList<>();
-            instructorRepo.findById(id).ifPresent(instructors::add);
-        } else if (specialization != null && courseId != null) {
-            instructors = instructorRepo.findBySpecializationIgnoreCaseAndCourseId(specialization, courseId);
-        } else if (specialization != null) {
-            instructors = instructorRepo.findBySpecializationIgnoreCase(specialization);
-        } else if (courseId != null) {
-            instructors = instructorRepo.findByCourseId(courseId);
-        } else {
-            instructors = instructorRepo.findAll();
-        }
-
-        List<InstructorResponse> result = new ArrayList<>();
-        for (Instructor instructor : instructors) {
-            result.add(toResponse(instructor));
-        }
-        return result;
+    private Specification<Instructor> buildSpec(Long id, String specialization, Long courseId) {
+        return (root, query, cb) -> cb.and(
+                id == null ? cb.conjunction() : cb.equal(root.get("id"), id),
+                specialization == null ? cb.conjunction() : cb.equal(cb.lower(root.get("specialization")), specialization.toLowerCase()),
+                courseId == null ? cb.conjunction() : cb.equal(root.get("course").get("id"), courseId)
+        );
     }
 
     public InstructorResponse update(Long id, InstructorRequest request) {

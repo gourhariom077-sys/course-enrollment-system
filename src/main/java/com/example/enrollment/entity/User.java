@@ -1,5 +1,6 @@
 package com.example.enrollment.entity;
 
+import com.example.enrollment.enums.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,6 +21,10 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String role;
+    private Role role;
+
+    @Column(name = "student_id")
+    private Long studentId;
 }

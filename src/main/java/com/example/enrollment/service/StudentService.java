@@ -12,7 +12,7 @@ import com.example.enrollment.repository.StudentRepo;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import org.springframework.data.jpa.domain.Specification;
 import java.util.List;
 
 @Service
@@ -56,27 +56,19 @@ public class StudentService {
     }
 
     public List<StudentResponse> search(Long id, String name, String phone, String email) {
-        List<Student> students;
+        Specification<Student> spec = buildSpec(id, name, phone, email);
+        return studentRepo.findAll(spec).stream()
+                .map(this::toResponse)
+                .toList();
+    }
 
-        if (id != null) {
-            students = new ArrayList<>();
-            studentRepo.findById(id).ifPresent(students::add);
-        } else if (email != null) {
-            students = new ArrayList<>();
-            studentRepo.findByEmail(email).ifPresent(students::add);
-        } else if (phone != null) {
-            students = studentRepo.findByPhone(phone);
-        } else if (name != null) {
-            students = studentRepo.findByNameContainingIgnoreCase(name);
-        } else {
-            students = studentRepo.findAll();
-        }
-
-        List<StudentResponse> result = new ArrayList<>();
-        for (Student student : students) {
-            result.add(toResponse(student));
-        }
-        return result;
+    private Specification<Student> buildSpec(Long id, String name, String phone, String email) {
+        return (root, query, cb) -> cb.and(
+                id == null ? cb.conjunction() : cb.equal(root.get("id"), id),
+                name == null ? cb.conjunction() : cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%"),
+                phone == null ? cb.conjunction() : cb.equal(root.get("phone"), phone),
+                email == null ? cb.conjunction() : cb.equal(root.get("email"), email)
+        );
     }
 
     public StudentResponse update(Long id, StudentRequest request) {

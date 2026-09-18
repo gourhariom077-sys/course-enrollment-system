@@ -9,10 +9,10 @@ import com.example.enrollment.exception.ResourceNotFoundException;
 import com.example.enrollment.repository.CourseRepo;
 import com.example.enrollment.repository.GradeRepo;
 import com.example.enrollment.repository.StudentRepo;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -48,26 +48,18 @@ public class GradeService {
     }
 
     public List<GradeResponse> search(Long id, Long studentId, Long courseId) {
-        List<Grade> grades;
+        Specification<Grade> spec = buildSpec(id, studentId, courseId);
+        return gradeRepo.findAll(spec).stream()
+                .map(this::toResponse)
+                .toList();
+    }
 
-        if (id != null) {
-            grades = new ArrayList<>();
-            gradeRepo.findById(id).ifPresent(grades::add);
-        } else if (studentId != null && courseId != null) {
-            grades = gradeRepo.findByStudentIdAndCourseId(studentId, courseId);
-        } else if (studentId != null) {
-            grades = gradeRepo.findByStudentId(studentId);
-        } else if (courseId != null) {
-            grades = gradeRepo.findByCourseId(courseId);
-        } else {
-            grades = gradeRepo.findAll();
-        }
-
-        List<GradeResponse> result = new ArrayList<>();
-        for (Grade grade : grades) {
-            result.add(toResponse(grade));
-        }
-        return result;
+    private Specification<Grade> buildSpec(Long id, Long studentId, Long courseId) {
+        return (root, query, cb) -> cb.and(
+                id == null ? cb.conjunction() : cb.equal(root.get("id"), id),
+                studentId == null ? cb.conjunction() : cb.equal(root.get("student").get("id"), studentId),
+                courseId == null ? cb.conjunction() : cb.equal(root.get("course").get("id"), courseId)
+        );
     }
 
     public GradeResponse update(Long id, GradeRequest request) {

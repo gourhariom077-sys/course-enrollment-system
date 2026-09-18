@@ -7,10 +7,10 @@ import com.example.enrollment.enums.CourseStatus;
 import com.example.enrollment.exception.ConflictException;
 import com.example.enrollment.exception.ResourceNotFoundException;
 import com.example.enrollment.repository.CourseRepo;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -40,25 +40,18 @@ public class CourseService {
     }
 
     public List<CourseResponse> search(Long id, String code, CourseStatus status) {
-        List<Course> courses;
+        Specification<Course> spec = buildSpec(id, code, status);
+        return courseRepo.findAll(spec).stream()
+                .map(this::toResponse)
+                .toList();
+    }
 
-        if (id != null) {
-            courses = new ArrayList<>();
-            courseRepo.findById(id).ifPresent(courses::add);
-        } else if (code != null) {
-            courses = new ArrayList<>();
-            courseRepo.findByCode(code).ifPresent(courses::add);
-        } else if (status != null) {
-            courses = courseRepo.findByCourseStatus(status);
-        } else {
-            courses = courseRepo.findAll();
-        }
-
-        List<CourseResponse> result = new ArrayList<>();
-        for (Course course : courses) {
-            result.add(toResponse(course));
-        }
-        return result;
+    private Specification<Course> buildSpec(Long id, String code, CourseStatus status) {
+        return (root, query, cb) -> cb.and(
+                id == null ? cb.conjunction() : cb.equal(root.get("id"), id),
+                code == null ? cb.conjunction() : cb.equal(root.get("code"), code),
+                status == null ? cb.conjunction() : cb.equal(root.get("courseStatus"), status)
+        );
     }
 
     public CourseResponse update(Long id, CourseRequest request) {
@@ -77,16 +70,10 @@ public class CourseService {
     }
 
     private CourseResponse toResponse(Course course) {
-        return CourseResponse.builder()
-                .id(course.getId())
-                .code(course.getCode())
-                .title(course.getTitle())
-                .description(course.getDescription())
-                .capacity(course.getCapacity())
-                .credits(course.getCredits())
-                .status(course.getCourseStatus())
-                .createdAt(course.getCreatedAt())
-                .updatedAt(course.getUpdatedAt())
-                .build();
+        return CourseResponse.builder().id(course.getId()).code(course.getCode())
+                .title(course.getTitle()).description(course.getDescription())
+                .capacity(course.getCapacity()).credits(course.getCredits())
+                .status(course.getCourseStatus()).createdAt(course.getCreatedAt())
+                .updatedAt(course.getUpdatedAt()).build();
     }
 }
