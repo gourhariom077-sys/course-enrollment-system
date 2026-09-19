@@ -2,6 +2,9 @@ spring:
   application:
     name: enrollment
 
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
   jackson:
     default-property-inclusion: non_null
 
@@ -13,7 +16,7 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
@@ -21,3 +24,8 @@ spring:
 
 server:
   port: 8080
+
+jwt:
+  secret: your-256-bit-secret-key-here-change-it-in-production-123456
+  expiration: 86400000
+

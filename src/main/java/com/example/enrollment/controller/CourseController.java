@@ -6,59 +6,42 @@ import com.example.enrollment.dto.response.CourseResponse;
 import com.example.enrollment.enums.CourseStatus;
 import com.example.enrollment.service.CourseService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/courses")
-@RequiredArgsConstructor
 public class CourseController {
 
     private final CourseService courseService;
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<CourseResponse>> create(
-            @Valid @RequestBody CourseRequest request) {
+    public CourseController(CourseService courseService) {
+        this.courseService = courseService;
+    }
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponse.ok("Course created", courseService.create(request)));
+    @PostMapping
+    public ResponseEntity<ApiResponse<CourseResponse>> create(@Valid @RequestBody CourseRequest request) {
+        CourseResponse response = courseService.create(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Course created successfully", response));
     }
 
     @GetMapping
-    public ApiResponse<Page<CourseResponse>> getAll(
-            @RequestParam(required = false) CourseStatus status,
-            @PageableDefault(size = 10, sort = "id") Pageable pageable) {
+    public ResponseEntity<ApiResponse<List<CourseResponse>>> getAll(
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) String code,
+            @RequestParam(required = false) CourseStatus status) {
 
-        return ApiResponse.ok(courseService.getAll(status, pageable));
+        List<CourseResponse> response = courseService.search(id, code, status);
+        return ResponseEntity.ok(ApiResponse.success("Courses fetched successfully", response));
     }
 
-    @GetMapping("/{id}")
-    public ApiResponse<CourseResponse> getById(@PathVariable Long id) {
-        return ApiResponse.ok(courseService.getById(id));
-    }
 
     @PutMapping("/{id}")
-    public ApiResponse<CourseResponse> update(
-            @PathVariable Long id,
-            @Valid @RequestBody CourseRequest request) {
-
-        return ApiResponse.ok("Course updated", courseService.update(id, request));
-    }
-
-    @PatchMapping("/{id}/close")
-    public ApiResponse<CourseResponse> close(@PathVariable Long id) {
-        return ApiResponse.ok("Course closed", courseService.close(id));
-    }
-
-    @DeleteMapping("/{id}")
-    public ApiResponse<Void> delete(@PathVariable Long id) {
-        courseService.delete(id);
-        return ApiResponse.ok("Course deleted", null);
+    public ResponseEntity<ApiResponse<CourseResponse>> update(@PathVariable Long id, @Valid @RequestBody CourseRequest request) {
+        CourseResponse response = courseService.update(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Course updated successfully", response));
     }
 }

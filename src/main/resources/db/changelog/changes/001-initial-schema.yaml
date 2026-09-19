@@ -1,0 +1,279 @@
+databaseChangeLog:
+    - changeSet:
+          id: 001-1-create-courses
+          author: gourh
+          changes:
+              - createTable:
+                    tableName: courses
+                    columns:
+                        - column:
+                              name: id
+                              type: BIGSERIAL
+                              constraints:
+                                  primaryKey: true
+                                  nullable: false
+                        - column:
+                              name: code
+                              type: VARCHAR(20)
+                              constraints:
+                                  nullable: false
+                                  unique: true
+                                  uniqueConstraintName: uk_courses_code
+                        - column:
+                              name: title
+                              type: VARCHAR(150)
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: description
+                              type: VARCHAR(1000)
+                        - column:
+                              name: capacity
+                              type: INTEGER
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: credits
+                              type: INTEGER
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: status
+                              type: VARCHAR(20)
+                              defaultValue: OPEN
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: created_at
+                              type: TIMESTAMP
+                              defaultValueComputed: CURRENT_TIMESTAMP
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: updated_at
+                              type: TIMESTAMP
+
+    - changeSet:
+          id: 001-2-create-instructors
+          author: gourh
+          changes:
+              - createTable:
+                    tableName: instructors
+                    columns:
+                        - column:
+                              name: id
+                              type: BIGSERIAL
+                              constraints:
+                                  primaryKey: true
+                                  nullable: false
+                        - column:
+                              name: name
+                              type: VARCHAR(100)
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: email
+                              type: VARCHAR(150)
+                              constraints:
+                                  nullable: false
+                                  unique: true
+                                  uniqueConstraintName: uk_instructors_email
+                        - column:
+                              name: phone
+                              type: VARCHAR(15)
+                        - column:
+                              name: specialization
+                              type: VARCHAR(50)
+                        - column:
+                              name: course_id
+                              type: BIGINT
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: created_at
+                              type: TIMESTAMP
+                              defaultValueComputed: CURRENT_TIMESTAMP
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: updated_at
+                              type: TIMESTAMP
+              - addForeignKeyConstraint:
+                    baseTableName: instructors
+                    baseColumnNames: course_id
+                    referencedTableName: courses
+                    referencedColumnNames: id
+                    constraintName: fk_instructors_course
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+
+    - changeSet:
+          id: 001-3-create-students
+          author: gourh
+          changes:
+              - createTable:
+                    tableName: students
+                    columns:
+                        - column:
+                              name: id
+                              type: BIGSERIAL
+                              constraints:
+                                  primaryKey: true
+                                  nullable: false
+                        - column:
+                              name: roll_no
+                              type: VARCHAR(30)
+                              constraints:
+                                  nullable: false
+                                  unique: true
+                                  uniqueConstraintName: uk_students_roll_no
+                        - column:
+                              name: name
+                              type: VARCHAR(100)
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: email
+                              type: VARCHAR(150)
+                              constraints:
+                                  nullable: false
+                                  unique: true
+                                  uniqueConstraintName: uk_students_email
+                        - column:
+                              name: phone
+                              type: VARCHAR(15)
+                        - column:
+                              name: course_id
+                              type: BIGINT
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: semester
+                              type: INTEGER
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: created_at
+                              type: TIMESTAMP
+                              defaultValueComputed: CURRENT_TIMESTAMP
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: updated_at
+                              type: TIMESTAMP
+              - addForeignKeyConstraint:
+                    baseTableName: students
+                    baseColumnNames: course_id
+                    referencedTableName: courses
+                    referencedColumnNames: id
+                    constraintName: fk_students_course
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+
+    - changeSet:
+          id: 001-4-create-grades
+          author: gourh
+          changes:
+              - createTable:
+                    tableName: grades
+                    columns:
+                        - column:
+                              name: id
+                              type: BIGSERIAL
+                              constraints:
+                                  primaryKey: true
+                                  nullable: false
+                        - column:
+                              name: student_id
+                              type: BIGINT
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: course_id
+                              type: BIGINT
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: marks
+                              type: NUMERIC(5,2)
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: grade_letter
+                              type: VARCHAR(2)
+                        - column:
+                              name: remarks
+                              type: VARCHAR(500)
+                        - column:
+                              name: created_at
+                              type: TIMESTAMP
+                              defaultValueComputed: CURRENT_TIMESTAMP
+                              constraints:
+                                  nullable: false
+                        - column:
+                              name: updated_at
+                              type: TIMESTAMP
+                        - column:
+                              name: graded_at
+                              type: TIMESTAMP
+                              constraints:
+                                  nullable: false
+              - addForeignKeyConstraint:
+                    baseTableName: grades
+                    baseColumnNames: student_id
+                    referencedTableName: students
+                    referencedColumnNames: id
+                    constraintName: fk_grades_student
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+              - addForeignKeyConstraint:
+                    baseTableName: grades
+                    baseColumnNames: course_id
+                    referencedTableName: courses
+                    referencedColumnNames: id
+                    constraintName: fk_grades_course
+                    onDelete: RESTRICT
+                    onUpdate: CASCADE
+
+    - changeSet:
+          id: 001-5-add-indexes
+          author: gourh
+          changes:
+              - createIndex:
+                    tableName: instructors
+                    indexName: idx_instructors_course
+                    columns:
+                        - column:
+                              name: course_id
+              - createIndex:
+                    tableName: students
+                    indexName: idx_students_course
+                    columns:
+                        - column:
+                              name: course_id
+              - createIndex:
+                    tableName: grades
+                    indexName: idx_grades_student
+                    columns:
+                        - column:
+                              name: student_id
+              - createIndex:
+                    tableName: grades
+                    indexName: idx_grades_course
+                    columns:
+                        - column:
+                              name: course_id
+    - changeSet:
+        id: 001-6-add-enrollment-status
+        author: gourh
+        changes:
+          - addColumn:
+              tableName: students
+              columns:
+                - column:
+                    name: enrollment_status
+                    type: VARCHAR(20)
+                    defaultValue: ENROLLED
+                    constraints:
+                      nullable: false
+

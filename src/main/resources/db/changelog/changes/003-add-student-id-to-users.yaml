@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-1-add-student-id-to-users
+      author: gourh
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: student_id
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+                    foreignKeyName: fk_users_student
+                    references: students(id)

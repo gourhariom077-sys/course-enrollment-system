@@ -1,7 +1,8 @@
 package com.example.enrollment.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -10,30 +11,35 @@ import java.time.LocalDateTime;
 @Table(name = "grades")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Grade {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "enrollment_id", nullable = false, unique = true)
-    private Enrollment enrollment;
+    @ManyToOne
+    @JoinColumn(name = "student_id", nullable = false)
+    private Student student;
+
+    @ManyToOne
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
 
     @Column(nullable = false, precision = 5, scale = 2)
     private BigDecimal marks;
 
-    @Column(name = "grade_letter", nullable = false, length = 2)
+    @Column(name = "grade_letter", length = 2)
     private String gradeLetter;
 
-    @Column(name = "graded_at", nullable = false, updatable = false)
-    private LocalDateTime gradedAt;
+    @Column(length = 500)
+    private String remarks;
 
-    @PrePersist
-    void onCreate() {
-        this.gradedAt = LocalDateTime.now();
-    }
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Column(name = "graded_at", nullable = false)
+    private LocalDateTime gradedAt;
 }

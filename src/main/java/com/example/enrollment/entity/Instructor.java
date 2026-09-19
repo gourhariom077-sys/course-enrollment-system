@@ -1,6 +1,5 @@
 package com.example.enrollment.entity;
 
-import com.example.enrollment.enums.EnrollmentStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,17 +7,14 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "students")
+@Table(name = "instructors")
 @Getter
 @Setter
-public class Student {
+public class Instructor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "roll_no", nullable = false, unique = true, length = 30)
-    private String rollNo;
 
     @Column(nullable = false, length = 100)
     private String name;
@@ -29,20 +25,16 @@ public class Student {
     @Column(length = 15)
     private String phone;
 
+    @Column(length = 50)
+    private String specialization;
+
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
-
-    @Column(nullable = false)
-    private Integer semester;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "enrollment_status", nullable = false, length = 30)
-    private EnrollmentStatus enrollmentStatus;
 }
