@@ -2,8 +2,10 @@ package com.example.enrollment.repository;
 
 import com.example.enrollment.entity.Student;
 import com.example.enrollment.enums.EnrollmentStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +20,7 @@ public interface StudentRepo extends JpaRepository<Student, Long>, JpaSpecificat
     List<Student> findByPhone(String phone);
     List<Student> findByNameContainingIgnoreCase(String name);
     long countByCourseIdAndEnrollmentStatus(Long courseId, EnrollmentStatus status);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<Student> findByCourseIdAndEnrollmentStatusOrderByCreatedAtAsc(Long courseId, EnrollmentStatus status);
 
 

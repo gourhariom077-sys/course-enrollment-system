@@ -11,7 +11,10 @@ import com.example.enrollment.repository.GradeRepo;
 import com.example.enrollment.repository.StudentRepo;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-
+import com.example.enrollment.entity.User;
+import com.example.enrollment.enums.Role;
+import com.example.enrollment.repository.UserRepo;
+import org.springframework.security.core.context.SecurityContextHolder;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,11 +24,12 @@ public class GradeService {
     private final GradeRepo gradeRepo;
     private final StudentRepo studentRepo;
     private final CourseRepo courseRepo;
-
-    public GradeService(GradeRepo gradeRepo, StudentRepo studentRepo, CourseRepo courseRepo) {
+    private final UserRepo userRepo;
+    public GradeService(GradeRepo gradeRepo, StudentRepo studentRepo, CourseRepo courseRepo, UserRepo userRepo) {
         this.gradeRepo = gradeRepo;
         this.studentRepo = studentRepo;
         this.courseRepo = courseRepo;
+        this.userRepo = userRepo;
     }
 
     public GradeResponse create(GradeRequest request) {
@@ -39,7 +43,7 @@ public class GradeService {
         grade.setStudent(student);
         grade.setCourse(course);
         grade.setMarks(request.getMarks());
-        grade.setGradeLetter(request.getGradeLetter());
+        grade.setGradeLetter(calculateGradeLetter(request.getMarks()));
         grade.setRemarks(request.getRemarks());
         grade.setGradedAt(LocalDateTime.now());
         grade.setCreatedAt(LocalDateTime.now());
@@ -48,7 +52,15 @@ public class GradeService {
     }
 
     public List<GradeResponse> search(Long id, Long studentId, Long courseId) {
-        Specification<Grade> spec = buildSpec(id, studentId, courseId);
+       Long effectiveStudentId = studentId;
+       String username = SecurityContextHolder.getContext().getAuthentication().getName();
+       User currentUser = userRepo.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
+
+       if (currentUser.getRole() == Role.STUDENT) {
+           effectiveStudentId = currentUser.getStudentId();
+       }
+
+        Specification<Grade> spec = buildSpec(id, effectiveStudentId, courseId);
         return gradeRepo.findAll(spec).stream()
                 .map(this::toResponse)
                 .toList();
@@ -64,12 +76,24 @@ public class GradeService {
 
     public GradeResponse update(Long id, GradeRequest request) {
         Grade grade = findOrThrow(id);
+
         grade.setMarks(request.getMarks());
-        grade.setGradeLetter(request.getGradeLetter());
+        grade.setGradeLetter(calculateGradeLetter(request.getMarks()));
+
         grade.setRemarks(request.getRemarks());
         grade.setUpdatedAt(LocalDateTime.now());
         return toResponse(gradeRepo.save(grade));
     }
+
+    private String calculateGradeLetter(java.math.BigDecimal marks) {
+        double value = marks.doubleValue();
+        if (value >= 90) return "A";
+        if (value >= 80) return "B";
+        if (value >= 70) return "C";
+        if (value >= 60) return "D";
+        return "F";
+    }
+
 
     private Grade findOrThrow(Long id) {
         return gradeRepo.findById(id)
